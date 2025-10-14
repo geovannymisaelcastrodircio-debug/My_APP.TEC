@@ -85,38 +85,19 @@ else:
         busqueda_num = st.text_input("Escribe el número de control:")
 
         if busqueda_num:
+            # Normalizar el número de control
             num_input = re.sub(r'\D', '', busqueda_num.strip())
-            num_normalizado = num_input.lstrip("0")
+            num_normalizado = int(num_input) if num_input.isdigit() else num_input
 
             resultados = []
             for carrera in carreras:
                 coleccion = db[carrera]
 
-                # Posibles formatos (texto, número, decimal, etc.)
-                posibles_valores = set([
-                    num_input,
-                    num_normalizado,
-                    num_input.replace(".", ""),
-                    num_normalizado.replace(".", ""),
-                    num_input.replace(",", "."),
-                ])
-
-                # Agregar equivalentes numéricos si aplica
-                try:
-                    posibles_valores.add(int(float(num_input)))
-                except ValueError:
-                    pass
-                try:
-                    posibles_valores.add(float(num_input))
-                except ValueError:
-                    pass
-
                 # Consulta flexible
                 query = {
                     "$or": [
-                        {"NUM.CONTROL": {"$in": list(posibles_valores)}},
-                        {"NUM.CONTROL": {"$regex": f"^{num_input}$", "$options": "i"}},
-                        {"NUM.CONTROL": {"$regex": f"^{num_normalizado}$", "$options": "i"}}
+                        {"NUM.CONTROL": num_normalizado},
+                        {"NUM.CONTROL": {"$regex": f"^{num_input}$", "$options": "i"}}
                     ]
                 }
 
