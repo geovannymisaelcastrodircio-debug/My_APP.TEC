@@ -91,7 +91,7 @@ else:
             for carrera in carreras:
                 coleccion = db[carrera]
 
-                # Posibles formatos (texto, número, decimal, etc.)
+                # Normalizar y convertir a diferentes formatos
                 posibles_valores = set([
                     num_input,
                     num_normalizado,
@@ -103,11 +103,11 @@ else:
                 # Agregar equivalentes numéricos si aplica
                 try:
                     posibles_valores.add(int(float(num_input)))
-                except:
+                except ValueError:
                     pass
                 try:
                     posibles_valores.add(float(num_input))
-                except:
+                except ValueError:
                     pass
 
                 # Consulta flexible
