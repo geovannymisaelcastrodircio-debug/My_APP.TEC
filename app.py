@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 from pymongo import MongoClient
 from datetime import date
+import re
 
 # ======================= CONFIGURACIÓN =======================
 st.set_page_config(page_title="Sistema de Estudiantes", page_icon="🎓", layout="wide")
@@ -84,14 +85,14 @@ else:
         busqueda_num = st.text_input("Escribe el número de control:")
 
         if busqueda_num:
-            num_input = busqueda_num.strip()
-            num_normalizado = num_input.replace(" ", "").lstrip("0")
+            num_input = re.sub(r'\D', '', busqueda_num.strip())
+            num_normalizado = num_input.lstrip("0")
 
             resultados = []
             for carrera in carreras:
                 coleccion = db[carrera]
 
-                # Normalizar y convertir a diferentes formatos
+                # Posibles formatos (texto, número, decimal, etc.)
                 posibles_valores = set([
                     num_input,
                     num_normalizado,
