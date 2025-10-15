@@ -3,7 +3,6 @@ import streamlit as st
 import pandas as pd
 from pymongo import MongoClient
 from datetime import date
-import re
 
 # ======================= CONFIGURACIÓN =======================
 st.set_page_config(page_title="Sistema de Estudiantes", page_icon="🎓", layout="wide")
@@ -72,53 +71,18 @@ else:
             coleccion = db[carrera]
             all_data.extend(list(coleccion.find({}, {"_id": 0})))
         df_all_data = pd.DataFrame(all_data)
-        st.dataframe(df_all_data[["NOMBRE_(S)", "A._PAT", "A._MAT", "NUM.CONTROL"]])
 
-        # Búsqueda por nombre
-        busqueda_nombre = st.text_input("Escribe el nombre del estudiante:")
-        if busqueda_nombre:
-            resultados = []
-            for carrera in carreras:
-                coleccion = db[carrera]
-                query = {"NOMBRE_(S)": {"$regex": busqueda_nombre.strip(), "$options": "i"}}
-                resultados.extend(list(coleccion.find(query, {"_id": 0})))
-            if resultados:
-                df_resultados = pd.DataFrame(resultados)
-                st.dataframe(df_resultados[["NOMBRE_(S)", "A._PAT", "A._MAT", "NUM.CONTROL"]])
-                seleccion = st.selectbox("Selecciona un estudiante:", df_resultados["NOMBRE_(S)"].tolist())
-                if seleccion:
-                    fila = df_resultados[df_resultados["NOMBRE_(S)"] == seleccion].iloc[0]
-                    st.json(fila.to_dict())
-            else:
-                st.info("No se encontraron coincidencias por nombre.")
+        # Agregar botón para mostrar datos completos
+        def mostrar_datos_completos(row):
+            st.json(row.to_dict())
 
-        # Búsqueda por número de control
-        busqueda_num = st.text_input("Escribe el número de control:")
-        if busqueda_num:
-            # Normalizar el número de control
-            num_input = re.sub(r'\D', '', busqueda_num.strip())
-            num_normalizado = int(num_input) if num_input.isdigit() else num_input
+        df_all_data['Detalles'] = df_all_data.apply(lambda row: st.button("Ver Detalles", key=f"detalle_{row['NUM.CONTROL']}"), axis=1)
 
-            resultados = []
-            for carrera in carreras:
-                coleccion = db[carrera]
-                query = {
-                    "$or": [
-                        {"NUM.CONTROL": num_normalizado},
-                        {"NUM.CONTROL": {"$regex": f"^{num_input}$", "$options": "i"}}
-                    ]
-                }
-                resultados.extend(list(coleccion.find(query, {"_id": 0})))
+        st.dataframe(df_all_data[["NOMBRE_(S)", "A._PAT", "A._MAT", "NUM.CONTROL", "Detalles"]])
 
-            if resultados:
-                df_resultados = pd.DataFrame(resultados)
-                st.dataframe(df_resultados[["NOMBRE_(S)", "A._PAT", "A._MAT", "NUM.CONTROL"]])
-                seleccion = st.selectbox("Selecciona un estudiante:", df_resultados["NOMBRE_(S)"].tolist())
-                if seleccion:
-                    fila = df_resultados[df_resultados["NOMBRE_(S)"] == seleccion].iloc[0]
-                    st.json(fila.to_dict())
-            else:
-                st.warning("⚠️ No se encontraron coincidencias para ese número de control.")
+        for index, row in df_all_data.iterrows():
+            if st.session_state.get(f"detalle_{row['NUM.CONTROL']}", False):
+                mostrar_datos_completos(row)
 
     # ======================= 2. VER ALUMNOS POR CARRERA =======================
     elif menu == "📖 Ver Alumnos por Carrera":
