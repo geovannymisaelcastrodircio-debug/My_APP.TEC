@@ -62,9 +62,6 @@ else:
     ])
 
     # ======================= 1. BUSCAR POR NOMBRE O NÚMERO DE CONTROL =======================
-    def mostrar_datos_completos(row):
-        st.json(row.to_dict())
-
     if menu == "🔍 Buscar por Nombre o Número de Control":
         st.subheader("🔍 Buscar estudiantes por Nombre o Número de Control")
 
@@ -75,16 +72,8 @@ else:
             all_data.extend(list(coleccion.find({}, {"_id": 0})))
         df_all_data = pd.DataFrame(all_data)
 
-        # Agregar columna para el botón "Ver Detalles"
-        df_all_data['Detalles'] = df_all_data.apply(lambda row: st.button(f"Ver Detalles_{row['NUM.CONTROL']}", key=f"detalle_{row['NUM.CONTROL']}"), axis=1)
-
         # Mostrar la tabla
-        st.dataframe(df_all_data[["NOMBRE_(S)", "A._PAT", "A._MAT", "NUM.CONTROL", "Detalles"]])
-
-        # Mostrar datos completos si se pulsa el botón
-        for index, row in df_all_data.iterrows():
-            if st.session_state.get(f"detalle_{row['NUM.CONTROL']}", False):
-                mostrar_datos_completos(row)
+        st.dataframe(df_all_data[["NOMBRE_(S)", "A._PAT", "A._MAT", "NUM.CONTROL"]])
 
     # ======================= 2. VER ALUMNOS POR CARRERA =======================
     elif menu == "📖 Ver Alumnos por Carrera":
@@ -99,15 +88,8 @@ else:
                     df_carrera.get("A._PAT", pd.Series([""]*len(df_carrera))).fillna("") + " " +
                     df_carrera.get("A._MAT", pd.Series([""]*len(df_carrera))).fillna("")
                 )
-                df_carrera['Detalles'] = df_carrera.apply(lambda row: st.button(f"Ver Detalles_{row['NUM.CONTROL']}", key=f"detalle_{row['NUM.CONTROL']}"), axis=1)
-
                 # Mostrar la tabla
-                st.dataframe(df_carrera[["NOMBRE_COMPLETO", "NUM.CONTROL", "Detalles"]])
-
-                # Mostrar datos completos si se pulsa el botón
-                for index, row in df_carrera.iterrows():
-                    if st.session_state.get(f"detalle_{row['NUM.CONTROL']}", False):
-                        mostrar_datos_completos(row)
+                st.dataframe(df_carrera[["NOMBRE_COMPLETO", "NUM.CONTROL"]])
 
     # ======================= 3. VER / EDITAR ESTUDIANTES =======================
     elif menu == "📖 Ver / Editar estudiantes":
