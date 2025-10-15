@@ -57,56 +57,26 @@ else:
 
     st.sidebar.markdown("### Menú de Navegación")
     menu = st.sidebar.radio("Selecciona opción:", [
-        "🔍 Buscar por Nombre",
-        "🔍 Buscar por Número de Control",
+        "🔍 Buscar por Nombre o Número de Control",
         "📖 Ver Alumnos por Carrera"
     ])
 
-    # ======================= 1. BUSCAR POR NOMBRE =======================
-    if menu == "🔍 Buscar por Nombre":
-        st.subheader("🔍 Buscar estudiantes por Nombre")
-        busqueda_nombre = st.text_input("Escribe el nombre del estudiante:")
+    # ======================= 1. BUSCAR POR NOMBRE O NÚMERO DE CONTROL =======================
+    if menu == "🔍 Buscar por Nombre o Número de Control":
+        st.subheader("🔍 Buscar estudiantes por Nombre o Número de Control")
+        busqueda = st.text_input("Escribe el nombre o número de control del estudiante:")
 
-        if busqueda_nombre:
+        if busqueda:
             resultados = []
             for carrera in carreras:
                 coleccion = db[carrera]
-                query = {"NOMBRE_(S)": {"$regex": busqueda_nombre.strip(), "$options": "i"}}
-                resultados.extend(list(coleccion.find(query, {"_id": 0})))
-            if resultados:
-                df_resultados = pd.DataFrame(resultados)
-                st.dataframe(df_resultados[["NOMBRE_(S)", "A._PAT", "A._MAT", "NUM.CONTROL"]])
-                seleccion = st.selectbox("Selecciona un estudiante:", df_resultados["NOMBRE_(S)"].tolist())
-                if seleccion:
-                    fila = df_resultados[df_resultados["NOMBRE_(S)"] == seleccion].iloc[0]
-                    st.json(fila.to_dict())
-            else:
-                st.info("No se encontraron coincidencias por nombre.")
-
-    # ======================= 2. BUSCAR POR NÚMERO DE CONTROL =======================
-    elif menu == "🔍 Buscar por Número de Control":
-        st.subheader("🔍 Buscar estudiantes por Número de Control")
-        busqueda_num = st.text_input("Escribe el número de control:")
-
-        if busqueda_num:
-            # Normalizar el número de control
-            num_input = re.sub(r'\D', '', busqueda_num.strip())
-            num_normalizado = int(num_input) if num_input.isdigit() else num_input
-
-            resultados = []
-            for carrera in carreras:
-                coleccion = db[carrera]
-
-                # Consulta flexible
                 query = {
                     "$or": [
-                        {"NUM.CONTROL": num_normalizado},
-                        {"NUM.CONTROL": {"$regex": f"^{num_input}$", "$options": "i"}}
+                        {"NOMBRE_(S)": {"$regex": busqueda.strip(), "$options": "i"}},
+                        {"NUM.CONTROL": {"$regex": busqueda.strip(), "$options": "i"}}
                     ]
                 }
-
                 resultados.extend(list(coleccion.find(query, {"_id": 0})))
-
             if resultados:
                 df_resultados = pd.DataFrame(resultados)
                 st.dataframe(df_resultados[["NOMBRE_(S)", "A._PAT", "A._MAT", "NUM.CONTROL"]])
@@ -115,27 +85,89 @@ else:
                     fila = df_resultados[df_resultados["NOMBRE_(S)"] == seleccion].iloc[0]
                     st.json(fila.to_dict())
             else:
-                st.warning("⚠️ No se encontraron coincidencias para ese número de control.")
+                st.info("No se encontraron coincidencias.")
 
-    # ======================= 3. VER ALUMNOS POR CARRERA =======================
+    # ======================= 2. VER ALUMNOS POR CARRERA =======================
     elif menu == "📖 Ver Alumnos por Carrera":
         st.subheader("📖 Ver Alumnos por Carrera")
         carrera = st.selectbox("Selecciona carrera:", carreras)
         if carrera:
             coleccion = db[carrera]
-            periodos = coleccion.distinct("PERIODO")
-            if periodos:
-                periodo = st.selectbox("Selecciona periodo:", periodos)
-                if periodo:
-                    df_periodo = pd.DataFrame(list(coleccion.find({"PERIODO": periodo}, {"_id": 0})))
-                    if not df_periodo.empty:
-                        df_periodo["NOMBRE_COMPLETO"] = (
-                            df_periodo.get("NOMBRE_(S)", pd.Series([""]*len(df_periodo))).fillna("") + " " +
-                            df_periodo.get("A._PAT", pd.Series([""]*len(df_periodo))).fillna("") + " " +
-                            df_periodo.get("A._MAT", pd.Series([""]*len(df_periodo))).fillna("")
+            df_carrera = pd.DataFrame(list(coleccion.find({}, {"_id": 0})))
+            if not df_carrera.empty:
+                df_carrera["NOMBRE_COMPLETO"] = (
+                    df_carrera.get("NOMBRE_(S)", pd.Series([""]*len(df_carrera))).fillna("") + " " +
+                    df_carrera.get("A._PAT", pd.Series([""]*len(df_carrera))).fillna("") + " " +
+                    df_carrera.get("A._MAT", pd.Series([""]*len(df_carrera))).fillna("")
+                )
+                st.dataframe(df_carrera[["NOMBRE_COMPLETO", "NUM.CONTROL"]])
+                seleccion = st.selectbox("Selecciona un estudiante:", df_carrera["NOMBRE_COMPLETO"].tolist())
+                if seleccion:
+                    fila = df_carrera[df_carrera["NOMBRE_COMPLETO"] == seleccion].iloc[0]
+                    st.json(fila.to_dict())
+
+    # ======================= 3. VER / EDITAR ESTUDIANTES =======================
+    st.subheader("📖 Consultar y editar estudiantes por carrera y periodo")
+    carrera = st.selectbox("Selecciona carrera:", carreras)
+    if carrera:
+        coleccion = db[carrera]
+        periodos = coleccion.distinct("PERIODO")
+        if periodos:
+            periodo = st.selectbox("Selecciona periodo:", periodos)
+            if periodo:
+                df_periodo = pd.DataFrame(list(coleccion.find({"PERIODO": periodo}, {"_id": 0})))
+                if not df_periodo.empty:
+                    df_periodo["NOMBRE_COMPLETO"] = (
+                        df_periodo.get("NOMBRE_(S)", pd.Series([""]*len(df_periodo))).fillna("") + " " +
+                        df_periodo.get("A._PAT", pd.Series([""]*len(df_periodo))).fillna("") + " " +
+                        df_periodo.get("A._MAT", pd.Series([""]*len(df_periodo))).fillna("")
+                    )
+                    estudiante = st.selectbox("Selecciona un estudiante:", df_periodo["NOMBRE_COMPLETO"].tolist())
+                    if estudiante:
+                        fila = df_periodo[df_periodo["NOMBRE_COMPLETO"] == estudiante].iloc[0]
+                        st.json(fila.to_dict())
+
+                        st.markdown("---")
+                        st.subheader("✏️ Editar datos del estudiante")
+                        nombre = st.text_input("Nombre(s)", value=fila.get("NOMBRE_(S)", ""))
+                        apellido_pat = st.text_input("Apellido Paterno", value=fila.get("A._PAT", ""))
+                        apellido_mat = st.text_input("Apellido Materno", value=fila.get("A._MAT", ""))
+                        num_control = st.text_input("Número de control", value=str(fila.get("NUM.CONTROL", "")))
+                        sexo = st.text_input("Sexo", value=fila.get("SEXO", ""))
+                        tema = st.text_area("Tema", value=fila.get("TEMA", ""))
+                        asesor_interno = st.text_input("Asesor Interno", value=fila.get("A._INTERNO", ""))
+                        asesor_externo = st.text_input("Asesor Externo", value=fila.get("A._EXTERNO", ""))
+                        revisor = st.text_input("Revisor", value=fila.get("REVISOR", ""))
+                        observaciones = st.text_area("Observaciones", value=fila.get("OBSERVACIONES", ""))
+
+                        fecha_str = fila.get("FECHA_DICTAMEN", None)
+                        fecha_dictamen = pd.to_datetime(fecha_str, errors="coerce")
+                        if pd.isna(fecha_dictamen):
+                            fecha_dictamen = date.today()
+                        fecha_dictamen = st.date_input(
+                            "Fecha dictamen",
+                            value=fecha_dictamen,
+                            min_value=date(1980, 1, 1),
+                            max_value=date(2035, 12, 31)
                         )
-                        st.dataframe(df_periodo[["NOMBRE_COMPLETO", "NUM.CONTROL"]])
-                        seleccion = st.selectbox("Selecciona un estudiante:", df_periodo["NOMBRE_COMPLETO"].tolist())
-                        if seleccion:
-                            fila = df_periodo[df_periodo["NOMBRE_COMPLETO"] == seleccion].iloc[0]
-                            st.json(fila.to_dict())
+
+                        if st.button("💾 Actualizar estudiante"):
+                            coleccion.update_one(
+                                {"NUM.CONTROL": fila.get("NUM.CONTROL", ""), "PERIODO": periodo},
+                                {"$set": {
+                                    "NOMBRE_(S)": nombre,
+                                    "A._PAT": apellido_pat,
+                                    "A._MAT": apellido_mat,
+                                    "NUM.CONTROL": int(num_control.strip()) if num_control.strip().isdigit() else num_control,
+                                    "SEXO": sexo,
+                                    "TEMA": tema,
+                                    "A._INTERNO": asesor_interno,
+                                    "A._EXTERNO": asesor_externo,
+                                    "REVISOR": revisor,
+                                    "OBSERVACIONES": observaciones,
+                                    "FECHA_DICTAMEN": str(fecha_dictamen),
+                                    "NOMBRE_COMPLETO": f"{nombre} {apellido_pat} {apellido_mat}".strip()
+                                }}
+                            )
+                            st.success(f"✅ Estudiante '{nombre} {apellido_pat}' actualizado correctamente.")
+                            st.rerun()
