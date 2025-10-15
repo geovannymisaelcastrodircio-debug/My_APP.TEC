@@ -72,8 +72,15 @@ else:
             all_data.extend(list(coleccion.find({}, {"_id": 0})))
         df_all_data = pd.DataFrame(all_data)
 
+        # Verificar que las columnas existen
+        columns_to_check = ["NOMBRE (S)", "A. PAT", "A. MAT", "NUM. CONTROL"]
+        for col in columns_to_check:
+            if col not in df_all_data.columns:
+                st.error(f"La columna '{col}' no existe en el DataFrame.")
+                st.stop()
+
         # Mostrar la tabla
-        st.dataframe(df_all_data[["NOMBRE_(S)", "A._PAT", "A._MAT", "NUM.CONTROL"]])
+        st.dataframe(df_all_data[columns_to_check])
 
     # ======================= 2. VER ALUMNOS POR CARRERA =======================
     elif menu == "📖 Ver Alumnos por Carrera":
@@ -84,12 +91,19 @@ else:
             df_carrera = pd.DataFrame(list(coleccion.find({}, {"_id": 0})))
             if not df_carrera.empty:
                 df_carrera["NOMBRE_COMPLETO"] = (
-                    df_carrera.get("NOMBRE_(S)", pd.Series([""]*len(df_carrera))).fillna("") + " " +
-                    df_carrera.get("A._PAT", pd.Series([""]*len(df_carrera))).fillna("") + " " +
-                    df_carrera.get("A._MAT", pd.Series([""]*len(df_carrera))).fillna("")
+                    df_carrera.get("NOMBRE (S)", pd.Series([""]*len(df_carrera))).fillna("") + " " +
+                    df_carrera.get("A. PAT", pd.Series([""]*len(df_carrera))).fillna("") + " " +
+                    df_carrera.get("A. MAT", pd.Series([""]*len(df_carrera))).fillna("")
                 )
+                # Verificar que las columnas existen
+                columns_to_check = ["NOMBRE_COMPLETO", "NUM. CONTROL"]
+                for col in columns_to_check:
+                    if col not in df_carrera.columns:
+                        st.error(f"La columna '{col}' no existe en el DataFrame.")
+                        st.stop()
+
                 # Mostrar la tabla
-                st.dataframe(df_carrera[["NOMBRE_COMPLETO", "NUM.CONTROL"]])
+                st.dataframe(df_carrera[columns_to_check])
 
     # ======================= 3. VER / EDITAR ESTUDIANTES =======================
     elif menu == "📖 Ver / Editar estudiantes":
@@ -104,9 +118,9 @@ else:
                     df_periodo = pd.DataFrame(list(coleccion.find({"PERIODO": periodo}, {"_id": 0})))
                     if not df_periodo.empty:
                         df_periodo["NOMBRE_COMPLETO"] = (
-                            df_periodo.get("NOMBRE_(S)", pd.Series([""]*len(df_periodo))).fillna("") + " " +
-                            df_periodo.get("A._PAT", pd.Series([""]*len(df_periodo))).fillna("") + " " +
-                            df_periodo.get("A._MAT", pd.Series([""]*len(df_periodo))).fillna("")
+                            df_periodo.get("NOMBRE (S)", pd.Series([""]*len(df_periodo))).fillna("") + " " +
+                            df_periodo.get("A. PAT", pd.Series([""]*len(df_periodo))).fillna("") + " " +
+                            df_periodo.get("A. MAT", pd.Series([""]*len(df_periodo))).fillna("")
                         )
                         estudiante = st.selectbox("Selecciona un estudiante:", df_periodo["NOMBRE_COMPLETO"].tolist())
                         if estudiante:
@@ -115,18 +129,18 @@ else:
 
                             st.markdown("---")
                             st.subheader("✏️ Editar datos del estudiante")
-                            nombre = st.text_input("Nombre(s)", value=fila.get("NOMBRE_(S)", ""))
-                            apellido_pat = st.text_input("Apellido Paterno", value=fila.get("A._PAT", ""))
-                            apellido_mat = st.text_input("Apellido Materno", value=fila.get("A._MAT", ""))
-                            num_control = st.text_input("Número de control", value=str(fila.get("NUM.CONTROL", "")))
+                            nombre = st.text_input("Nombre(s)", value=fila.get("NOMBRE (S)", ""))
+                            apellido_pat = st.text_input("Apellido Paterno", value=fila.get("A. PAT", ""))
+                            apellido_mat = st.text_input("Apellido Materno", value=fila.get("A. MAT", ""))
+                            num_control = st.text_input("Número de control", value=str(fila.get("NUM. CONTROL", "")))
                             sexo = st.text_input("Sexo", value=fila.get("SEXO", ""))
                             tema = st.text_area("Tema", value=fila.get("TEMA", ""))
-                            asesor_interno = st.text_input("Asesor Interno", value=fila.get("A._INTERNO", ""))
-                            asesor_externo = st.text_input("Asesor Externo", value=fila.get("A._EXTERNO", ""))
+                            asesor_interno = st.text_input("Asesor Interno", value=fila.get("A. INTERNO", ""))
+                            asesor_externo = st.text_input("Asesor Externo", value=fila.get("A. EXTERNO", ""))
                             revisor = st.text_input("Revisor", value=fila.get("REVISOR", ""))
                             observaciones = st.text_area("Observaciones", value=fila.get("OBSERVACIONES", ""))
 
-                            fecha_str = fila.get("FECHA_DICTAMEN", None)
+                            fecha_str = fila.get("FECHA DICTAMEN", None)
                             fecha_dictamen = pd.to_datetime(fecha_str, errors="coerce")
                             if pd.isna(fecha_dictamen):
                                 fecha_dictamen = date.today()
@@ -139,19 +153,19 @@ else:
 
                             if st.button("💾 Actualizar estudiante"):
                                 coleccion.update_one(
-                                    {"NUM.CONTROL": fila.get("NUM.CONTROL", ""), "PERIODO": periodo},
+                                    {"NUM. CONTROL": fila.get("NUM. CONTROL", ""), "PERIODO": periodo},
                                     {"$set": {
-                                        "NOMBRE_(S)": nombre,
-                                        "A._PAT": apellido_pat,
-                                        "A._MAT": apellido_mat,
-                                        "NUM.CONTROL": int(num_control.strip()) if num_control.strip().isdigit() else num_control,
+                                        "NOMBRE (S)": nombre,
+                                        "A. PAT": apellido_pat,
+                                        "A. MAT": apellido_mat,
+                                        "NUM. CONTROL": int(num_control.strip()) if num_control.strip().isdigit() else num_control,
                                         "SEXO": sexo,
                                         "TEMA": tema,
-                                        "A._INTERNO": asesor_interno,
-                                        "A._EXTERNO": asesor_externo,
+                                        "A. INTERNO": asesor_interno,
+                                        "A. EXTERNO": asesor_externo,
                                         "REVISOR": revisor,
                                         "OBSERVACIONES": observaciones,
-                                        "FECHA_DICTAMEN": str(fecha_dictamen),
+                                        "FECHA DICTAMEN": str(fecha_dictamen),
                                         "NOMBRE_COMPLETO": f"{nombre} {apellido_pat} {apellido_mat}".strip()
                                     }}
                                 )
