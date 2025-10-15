@@ -72,14 +72,17 @@ else:
             all_data.extend(list(coleccion.find({}, {"_id": 0})))
         df_all_data = pd.DataFrame(all_data)
 
-        # Agregar botón para mostrar datos completos
+        # Función para mostrar datos completos
         def mostrar_datos_completos(row):
             st.json(row.to_dict())
 
-        df_all_data['Detalles'] = df_all_data.apply(lambda row: st.button("Ver Detalles", key=f"detalle_{row['NUM.CONTROL']}"), axis=1)
+        # Crear una columna para el botón "Ver Detalles"
+        df_all_data['Detalles'] = df_all_data.apply(lambda row: st.button(f"Ver Detalles_{row['NUM.CONTROL']}", key=f"detalle_{row['NUM.CONTROL']}"), axis=1)
 
+        # Mostrar la tabla
         st.dataframe(df_all_data[["NOMBRE_(S)", "A._PAT", "A._MAT", "NUM.CONTROL", "Detalles"]])
 
+        # Mostrar datos completos si se pulsa el botón
         for index, row in df_all_data.iterrows():
             if st.session_state.get(f"detalle_{row['NUM.CONTROL']}", False):
                 mostrar_datos_completos(row)
