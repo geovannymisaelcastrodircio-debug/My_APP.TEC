@@ -57,51 +57,25 @@ else:
 
     st.sidebar.markdown("### Menú de Navegación")
     menu = st.sidebar.radio("Selecciona opción:", [
-        "🔍 Buscar por Número de Control",
-        "🔍 Buscar por Nombre",
+        "🔍 Buscar por Nombre o Número de Control",
         "📖 Ver Alumnos por Carrera",
         "📖 Ver / Editar estudiantes"
     ])
 
-    # ======================= 1. BUSCAR POR NÚMERO DE CONTROL =======================
-    if menu == "🔍 Buscar por Número de Control":
-        st.subheader("🔍 Buscar estudiantes por Número de Control")
-        busqueda_num = st.text_input("Escribe el número de control:")
+    # ======================= 1. BUSCAR POR NOMBRE O NÚMERO DE CONTROL =======================
+    if menu == "🔍 Buscar por Nombre o Número de Control":
+        st.subheader("🔍 Buscar estudiantes por Nombre o Número de Control")
 
-        if busqueda_num:
-            # Normalizar el número de control
-            num_input = re.sub(r'\D', '', busqueda_num.strip())
-            num_normalizado = int(num_input) if num_input.isdigit() else num_input
+        # Cargar todos los datos registrados
+        all_data = []
+        for carrera in carreras:
+            coleccion = db[carrera]
+            all_data.extend(list(coleccion.find({}, {"_id": 0})))
+        df_all_data = pd.DataFrame(all_data)
+        st.dataframe(df_all_data[["NOMBRE_(S)", "A._PAT", "A._MAT", "NUM.CONTROL"]])
 
-            resultados = []
-            for carrera in carreras:
-                coleccion = db[carrera]
-
-                # Consulta flexible
-                query = {
-                    "$or": [
-                        {"NUM.CONTROL": num_normalizado},
-                        {"NUM.CONTROL": {"$regex": f"^{num_input}$", "$options": "i"}}
-                    ]
-                }
-
-                resultados.extend(list(coleccion.find(query, {"_id": 0})))
-
-            if resultados:
-                df_resultados = pd.DataFrame(resultados)
-                st.dataframe(df_resultados[["NOMBRE_(S)", "A._PAT", "A._MAT", "NUM.CONTROL"]])
-                seleccion = st.selectbox("Selecciona un estudiante:", df_resultados["NOMBRE_(S)"].tolist())
-                if seleccion:
-                    fila = df_resultados[df_resultados["NOMBRE_(S)"] == seleccion].iloc[0]
-                    st.json(fila.to_dict())
-            else:
-                st.warning("⚠️ No se encontraron coincidencias para ese número de control.")
-
-    # ======================= 2. BUSCAR POR NOMBRE =======================
-    elif menu == "🔍 Buscar por Nombre":
-        st.subheader("🔍 Buscar estudiantes por Nombre")
+        # Búsqueda por nombre
         busqueda_nombre = st.text_input("Escribe el nombre del estudiante:")
-
         if busqueda_nombre:
             resultados = []
             for carrera in carreras:
@@ -118,7 +92,35 @@ else:
             else:
                 st.info("No se encontraron coincidencias por nombre.")
 
-    # ======================= 3. VER ALUMNOS POR CARRERA =======================
+        # Búsqueda por número de control
+        busqueda_num = st.text_input("Escribe el número de control:")
+        if busqueda_num:
+            # Normalizar el número de control
+            num_input = re.sub(r'\D', '', busqueda_num.strip())
+            num_normalizado = int(num_input) if num_input.isdigit() else num_input
+
+            resultados = []
+            for carrera in carreras:
+                coleccion = db[carrera]
+                query = {
+                    "$or": [
+                        {"NUM.CONTROL": num_normalizado},
+                        {"NUM.CONTROL": {"$regex": f"^{num_input}$", "$options": "i"}}
+                    ]
+                }
+                resultados.extend(list(coleccion.find(query, {"_id": 0})))
+
+            if resultados:
+                df_resultados = pd.DataFrame(resultados)
+                st.dataframe(df_resultados[["NOMBRE_(S)", "A._PAT", "A._MAT", "NUM.CONTROL"]])
+                seleccion = st.selectbox("Selecciona un estudiante:", df_resultados["NOMBRE_(S)"].tolist())
+                if seleccion:
+                    fila = df_resultados[df_resultados["NOMBRE_(S)"] == seleccion].iloc[0]
+                    st.json(fila.to_dict())
+            else:
+                st.warning("⚠️ No se encontraron coincidencias para ese número de control.")
+
+    # ======================= 2. VER ALUMNOS POR CARRERA =======================
     elif menu == "📖 Ver Alumnos por Carrera":
         st.subheader("📖 Ver Alumnos por Carrera")
         carrera = st.selectbox("Selecciona carrera:", carreras)
@@ -137,7 +139,7 @@ else:
                     fila = df_carrera[df_carrera["NOMBRE_COMPLETO"] == seleccion].iloc[0]
                     st.json(fila.to_dict())
 
-    # ======================= 4. VER / EDITAR ESTUDIANTES =======================
+    # ======================= 3. VER / EDITAR ESTUDIANTES =======================
     elif menu == "📖 Ver / Editar estudiantes":
         st.subheader("📖 Consultar y editar estudiantes por carrera y periodo")
         carrera = st.selectbox("Selecciona carrera:", carreras)
