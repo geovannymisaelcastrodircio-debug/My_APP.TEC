@@ -72,6 +72,9 @@ else:
             all_data.extend(list(coleccion.find({}, {"_id": 0})))
         df_all_data = pd.DataFrame(all_data)
 
+        # Filtrar registros sin nombre o número de control
+        df_all_data = df_all_data.dropna(subset=["NOMBRE (S)", "NUM. CONTROL"])
+
         # Verificar que las columnas existen
         columns_to_check = ["NOMBRE (S)", "A. PAT", "A. MAT", "NUM. CONTROL"]
         for col in columns_to_check:
@@ -102,12 +105,21 @@ else:
                 periodo = st.selectbox("Selecciona periodo:", periodos)
                 if periodo:
                     df_periodo = pd.DataFrame(list(coleccion.find({"PERIODO": periodo}, {"_id": 0})))
+
+                    # Filtrar registros sin nombre o número de control
+                    df_periodo = df_periodo.dropna(subset=["NOMBRE (S)", "NUM. CONTROL"])
+
                     if not df_periodo.empty:
                         df_periodo["NOMBRE_COMPLETO"] = (
                             df_periodo.get("NOMBRE (S)", pd.Series([""]*len(df_periodo))).fillna("") + " " +
                             df_periodo.get("A. PAT", pd.Series([""]*len(df_periodo))).fillna("") + " " +
                             df_periodo.get("A. MAT", pd.Series([""]*len(df_periodo))).fillna("")
                         )
+
+                        # Mostrar la tabla con nombre completo y número de control
+                        st.dataframe(df_periodo[["NOMBRE_COMPLETO", "NUM. CONTROL"]])
+
+                        # Seleccionar un estudiante
                         estudiante = st.selectbox("Selecciona un estudiante:", df_periodo["NOMBRE_COMPLETO"].tolist())
                         if estudiante:
                             fila = df_periodo[df_periodo["NOMBRE_COMPLETO"] == estudiante].iloc[0]
@@ -157,6 +169,7 @@ else:
                                 )
                                 st.success(f"✅ Estudiante '{nombre} {apellido_pat}' actualizado correctamente.")
                                 st.rerun()
+
     # ======================= 3. VER / EDITAR ESTUDIANTES =======================
     elif menu == "📖 Ver / Editar estudiantes":
         st.subheader("📖 Consultar y editar estudiantes por carrera y periodo")
