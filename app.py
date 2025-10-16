@@ -81,33 +81,15 @@ else:
         # Filtrar registros sin nombre o número de control
         df_all_data = df_all_data.dropna(subset=["NOMBRE (S)", "NUM. CONTROL"])
 
-        # Filtrar registros ya titulados
-        df_all_data = df_all_data[df_all_data["TITULADO"] != "Titulado"]
-
         # Verificar que las columnas existen
-        columns_to_check = ["NOMBRE (S)", "A. PAT", "A. MAT", "NUM. CONTROL", "TITULADO"]
+        columns_to_check = ["NOMBRE (S)", "A. PAT", "A. MAT", "NUM. CONTROL"]
         for col in columns_to_check:
             if col not in df_all_data.columns:
                 st.error(f"La columna '{col}' no existe en el DataFrame.")
                 st.stop()
 
-        # Agregar columna de titulación
-        df_all_data["TITULACIÓN"] = ""
-
         # Mostrar la tabla
-        for index, row in df_all_data.iterrows():
-            cols = st.columns([1, 1, 1, 1, 1])
-            cols[0].write(row["NOMBRE (S)"])
-            cols[1].write(row["A. PAT"])
-            cols[2].write(row["A. MAT"])
-            cols[3].write(row["NUM. CONTROL"])
-            if cols[4].button("Titulado", key=f"titulado_{index}"):
-                coleccion.update_one(
-                    {"NUM. CONTROL": row["NUM. CONTROL"]},
-                    {"$set": {"TITULADO": "Titulado"}}
-                )
-                st.success(f"✅ Estudiante {row['NOMBRE (S)']} {row['A. PAT']} {row['A. MAT']} marcado como titulado.")
-                st.rerun()
+        st.dataframe(df_all_data[columns_to_check])
 
     # ======================= 2. VER ALUMNOS POR CARRERA =======================
     elif menu == "📖 Ver Alumnos por Carrera":
@@ -131,9 +113,6 @@ else:
                     # Filtrar registros sin nombre o número de control
                     df_periodo = df_periodo.dropna(subset=["NOMBRE (S)", "NUM. CONTROL"])
 
-                    # Filtrar registros ya titulados
-                    df_periodo = df_periodo[df_periodo["TITULADO"] != "Titulado"]
-
                     if not df_periodo.empty:
                         df_periodo["NOMBRE_COMPLETO"] = (
                             df_periodo.get("NOMBRE (S)", pd.Series([""]*len(df_periodo))).fillna("") + " " +
@@ -141,21 +120,16 @@ else:
                             df_periodo.get("A. MAT", pd.Series([""]*len(df_periodo))).fillna("")
                         )
 
-                        # Agregar columna de titulación
-                        df_periodo["TITULACIÓN"] = ""
-
                         # Mostrar la tabla con nombre completo y número de control
-                        for index, row in df_periodo.iterrows():
-                            cols = st.columns([1, 1, 1])
-                            cols[0].write(row["NOMBRE_COMPLETO"])
-                            cols[1].write(row["NUM. CONTROL"])
-                            if cols[2].button("Titulado", key=f"titulado_{index}"):
-                                coleccion.update_one(
-                                    {"NUM. CONTROL": row["NUM. CONTROL"]},
-                                    {"$set": {"TITULADO": "Titulado"}}
-                                )
-                                st.success(f"✅ Estudiante {row['NOMBRE (S)']} {row['A. PAT']} {row['A. MAT']} marcado como titulado.")
-                                st.rerun()
+                        st.dataframe(df_periodo[["NOMBRE_COMPLETO", "NUM. CONTROL"]])
+
+                        # Seleccionar un estudiante
+                        estudiante = st.selectbox("Selecciona un estudiante:", df_periodo["NOMBRE_COMPLETO"].tolist())
+
+                        # Botón para mostrar datos completos del estudiante
+                        if st.button("Mostrar Datos Completos"):
+                            fila = df_periodo[df_periodo["NOMBRE_COMPLETO"] == estudiante].iloc[0]
+                            st.json(fila.to_dict())
 
     # ======================= 3. VER / EDITAR ESTUDIANTES =======================
     elif menu == "📖 Ver / Editar estudiantes":
