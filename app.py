@@ -18,6 +18,10 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "usuario" not in st.session_state:
     st.session_state.usuario = ""
+if "carrera" not in st.session_state:
+    st.session_state.carrera = ""
+if "periodo" not in st.session_state:
+    st.session_state.periodo = ""
 
 # ======================= LOGIN =======================
 if not st.session_state.logged_in:
@@ -52,6 +56,8 @@ else:
     if st.sidebar.button("🚪 Cerrar sesión"):
         st.session_state.logged_in = False
         st.session_state.usuario = ""
+        st.session_state.carrera = ""
+        st.session_state.periodo = ""
         st.rerun()
 
     st.sidebar.markdown("### Menú de Navegación")
@@ -92,19 +98,17 @@ else:
         # Botones para seleccionar carrera
         col1, col2 = st.columns(2)
         if col1.button("Ingeniería en Informática (I.I)"):
-            carrera = "I.I"
+            st.session_state.carrera = "I.I"
         elif col2.button("Ingeniería en Sistemas Computacionales (I.S.C)"):
-            carrera = "I.S.C"
-        else:
-            st.stop()
+            st.session_state.carrera = "I.S.C"
 
-        if carrera:
-            coleccion = db[carrera]
+        if st.session_state.carrera:
+            coleccion = db[st.session_state.carrera]
             periodos = coleccion.distinct("PERIODO")
             if periodos:
-                periodo = st.selectbox("Selecciona periodo:", periodos)
-                if periodo:
-                    df_periodo = pd.DataFrame(list(coleccion.find({"PERIODO": periodo}, {"_id": 0})))
+                st.session_state.periodo = st.selectbox("Selecciona periodo:", periodos)
+                if st.session_state.periodo:
+                    df_periodo = pd.DataFrame(list(coleccion.find({"PERIODO": st.session_state.periodo}, {"_id": 0})))
 
                     # Filtrar registros sin nombre o número de control
                     df_periodo = df_periodo.dropna(subset=["NOMBRE (S)", "NUM. CONTROL"])
