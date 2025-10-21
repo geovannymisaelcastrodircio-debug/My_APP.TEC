@@ -224,14 +224,14 @@ else:
             df_uploaded = pd.read_csv(uploaded_file, encoding="latin1")
 
             # Verificar que las columnas existen
-            required_columns = ["NOMBRE (S)", "A. PAT", "A. MAT", "NUM. CONTROL", "PERIODO"]
+            required_columns = ["NOMBRE (S)", "A. PAT", "A. MAT", "NUM.CONTROL", "PERIODO"]
             for col in required_columns:
                 if col not in df_uploaded.columns:
                     st.error(f"La columna '{col}' no existe en el archivo CSV.")
                     st.stop()
 
             # Filtrar registros sin nombre o número de control
-            df_uploaded = df_uploaded.dropna(subset=["NOMBRE (S)", "NUM. CONTROL"])
+            df_uploaded = df_uploaded.dropna(subset=["NOMBRE (S)", "NUM.CONTROL"])
 
             # Mostrar el DataFrame cargado
             st.dataframe(df_uploaded)
