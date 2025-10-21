@@ -80,10 +80,10 @@ else:
         df_all_data = pd.DataFrame(all_data)
 
         # Filtrar registros sin nombre o número de control
-        df_all_data = df_all_data.dropna(subset=["NOMBRE (S)", "NUM. CONTROL"])
+        df_all_data = df_all_data.dropna(subset=["NOMBRE (S)", "NUM.CONTROL"])
 
         # Verificar que las columnas existen
-        columns_to_check = ["NOMBRE (S)", "A. PAT", "A. MAT", "NUM. CONTROL"]
+        columns_to_check = ["NOMBRE (S)", "A. PAT", "A. MAT", "NUM.CONTROL"]
         for col in columns_to_check:
             if col not in df_all_data.columns:
                 st.error(f"La columna '{col}' no existe en el DataFrame.")
@@ -97,7 +97,7 @@ else:
                 df_all_data["NOMBRE (S)"].str.contains(search_term, case=False, na=False) |
                 df_all_data["A. PAT"].str.contains(search_term, case=False, na=False) |
                 df_all_data["A. MAT"].str.contains(search_term, case=False, na=False) |
-                df_all_data["NUM. CONTROL"].astype(str).str.contains(search_term, case=False, na=False)
+                df_all_data["NUM.CONTROL"].astype(str).str.contains(search_term, case=False, na=False)
             ]
         else:
             df_filtered = df_all_data
@@ -125,7 +125,7 @@ else:
                     df_periodo = pd.DataFrame(list(coleccion.find({"PERIODO": st.session_state.periodo}, {"_id": 0})))
 
                     # Filtrar registros sin nombre o número de control
-                    df_periodo = df_periodo.dropna(subset=["NOMBRE (S)", "NUM. CONTROL"])
+                    df_periodo = df_periodo.dropna(subset=["NOMBRE (S)", "NUM.CONTROL"])
 
                     if not df_periodo.empty:
                         df_periodo["NOMBRE_COMPLETO"] = (
@@ -135,7 +135,7 @@ else:
                         )
 
                         # Mostrar la tabla con nombre completo y número de control
-                        st.dataframe(df_periodo[["NOMBRE_COMPLETO", "NUM. CONTROL"]])
+                        st.dataframe(df_periodo[["NOMBRE_COMPLETO", "NUM.CONTROL"]])
 
                         # Seleccionar un estudiante
                         estudiante = st.selectbox("Selecciona un estudiante:", df_periodo["NOMBRE_COMPLETO"].tolist())
@@ -172,7 +172,7 @@ else:
                             nombre = st.text_input("Nombre(s)", value=fila.get("NOMBRE (S)", ""))
                             apellido_pat = st.text_input("Apellido Paterno", value=fila.get("A. PAT", ""))
                             apellido_mat = st.text_input("Apellido Materno", value=fila.get("A. MAT", ""))
-                            num_control = st.text_input("Número de control", value=str(fila.get("NUM. CONTROL", "")))
+                            num_control = st.text_input("Número de control", value=str(fila.get("NUM.CONTROL", "")))
                             sexo = st.text_input("Sexo", value=fila.get("SEXO", ""))
                             tema = st.text_area("Tema", value=fila.get("TEMA", ""))
                             asesor_interno = st.text_input("Asesor Interno", value=fila.get("A. INTERNO", ""))
@@ -193,12 +193,12 @@ else:
 
                             if st.button("💾 Actualizar estudiante"):
                                 coleccion.update_one(
-                                    {"NUM. CONTROL": fila.get("NUM. CONTROL", ""), "PERIODO": periodo},
+                                    {"NUM.CONTROL": fila.get("NUM.CONTROL", ""), "PERIODO": periodo},
                                     {"$set": {
                                         "NOMBRE (S)": nombre,
                                         "A. PAT": apellido_pat,
                                         "A. MAT": apellido_mat,
-                                        "NUM. CONTROL": int(num_control.strip()) if num_control.strip().isdigit() else num_control,
+                                        "NUM.CONTROL": int(num_control.strip()) if num_control.strip().isdigit() else num_control,
                                         "SEXO": sexo,
                                         "TEMA": tema,
                                         "A. INTERNO": asesor_interno,
@@ -224,14 +224,14 @@ else:
             df_uploaded = pd.read_csv(uploaded_file, encoding="latin1")
 
             # Verificar que las columnas existen
-            required_columns = ["NOMBRE (S)", "A. PAT", "A. MAT", "NUM. CONTROL", "PERIODO"]
+            required_columns = ["NOMBRE (S)", "A. PAT", "A. MAT", "NUM.CONTROL", "PERIODO"]
             for col in required_columns:
                 if col not in df_uploaded.columns:
                     st.error(f"La columna '{col}' no existe en el archivo CSV.")
                     st.stop()
 
             # Filtrar registros sin nombre o número de control
-            df_uploaded = df_uploaded.dropna(subset=["NOMBRE (S)", "NUM. CONTROL"])
+            df_uploaded = df_uploaded.dropna(subset=["NOMBRE (S)", "NUM.CONTROL"])
 
             # Mostrar el DataFrame cargado
             st.dataframe(df_uploaded)
