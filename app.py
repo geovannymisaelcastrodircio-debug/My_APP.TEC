@@ -64,7 +64,8 @@ else:
     menu = st.sidebar.radio("Selecciona opción:", [
         "🔍 Buscar por Nombre o Número de Control",
         "📖 Ver Alumnos por Carrera",
-        "📖 Ver / Editar estudiantes"
+        "📖 Ver / Editar estudiantes",
+        "📤 Subir Archivo CSV"
     ])
 
     # ======================= 1. BUSCAR POR NOMBRE O NÚMERO DE CONTROL =======================
@@ -210,3 +211,42 @@ else:
                                 )
                                 st.success(f"✅ Estudiante '{nombre} {apellido_pat}' actualizado correctamente.")
                                 st.rerun()
+
+    # ======================= 4. SUBIR ARCHIVO CSV =======================
+    elif menu == "📤 Subir Archivo CSV":
+        st.subheader("📤 Subir Archivo CSV")
+
+        # Widget para subir archivo
+        uploaded_file = st.file_uploader("Elige un archivo CSV", type=["csv"])
+
+        if uploaded_file is not None:
+            # Leer el archivo CSV
+            df_uploaded = pd.read_csv(uploaded_file, encoding="latin1")
+
+            # Verificar que las columnas existen
+            required_columns = ["NOMBRE (S)", "A. PAT", "A. MAT", "NUM. CONTROL", "PERIODO"]
+            for col in required_columns:
+                if col not in df_uploaded.columns:
+                    st.error(f"La columna '{col}' no existe en el archivo CSV.")
+                    st.stop()
+
+            # Filtrar registros sin nombre o número de control
+            df_uploaded = df_uploaded.dropna(subset=["NOMBRE (S)", "NUM. CONTROL"])
+
+            # Mostrar el DataFrame cargado
+            st.dataframe(df_uploaded)
+
+            # Seleccionar carrera y periodo
+            carrera = st.selectbox("Selecciona carrera:", carreras)
+            if carrera:
+                periodo = st.selectbox("Selecciona periodo:", df_uploaded["PERIODO"].unique())
+
+                if st.button("Subir a MongoDB"):
+                    coleccion = db[carrera]
+                    data_dict = df_uploaded[df_uploaded["PERIODO"] == periodo].to_dict("records")
+
+                    if data_dict:
+                        coleccion.insert_many(data_dict)
+                        st.success(f"✅ Se insertaron {len(data_dict)} registros en MongoDB correctamente.")
+                    else:
+                        st.error("❌ No se encontraron datos para insertar.")
