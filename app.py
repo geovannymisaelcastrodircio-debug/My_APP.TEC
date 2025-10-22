@@ -105,52 +105,53 @@ else:
         # Mostrar la tabla
         st.dataframe(df_filtered[columns_to_check])
 
-# ======================= 2. VER ALUMNOS POR CARRERA =======================
-elif menu == "📖 Ver Alumnos por Carrera":
-    st.subheader("📖 Ver Alumnos por Carrera")
+    # ======================= 2. VER ALUMNOS POR CARRERA =======================
+    elif menu == "📖 Ver Alumnos por Carrera":
+        st.subheader("📖 Ver Alumnos por Carrera")
 
-    # Botones para seleccionar carrera
-    col1, col2 = st.columns(2)
-    if col1.button("Ingeniería en Informática (I.I)"):
-        st.session_state.carrera = "I.I"
-    elif col2.button("Ingeniería en Sistemas Computacionales (I.S.C)"):
-        st.session_state.carrera = "I.S.C"
+        # Botones para seleccionar carrera
+        col1, col2 = st.columns(2)
+        if col1.button("Ingeniería en Informática (I.I)"):
+            st.session_state.carrera = "I.I"
+        elif col2.button("Ingeniería en Sistemas Computacionales (I.S.C)"):
+            st.session_state.carrera = "I.S.C"
 
-    if st.session_state.carrera:
-        coleccion = db[st.session_state.carrera]
-        periodos = coleccion.distinct("PERIODO")
-        if periodos:
-            st.session_state.periodo = st.selectbox("Selecciona periodo:", periodos)
-            if st.session_state.periodo:
-                df_periodo = pd.DataFrame(list(coleccion.find({"PERIODO": st.session_state.periodo}, {"_id": 0})))
+        if st.session_state.carrera:
+            coleccion = db[st.session_state.carrera]
+            periodos = coleccion.distinct("PERIODO")
+            if periodos:
+                st.session_state.periodo = st.selectbox("Selecciona periodo:", periodos)
+                if st.session_state.periodo:
+                    df_periodo = pd.DataFrame(list(coleccion.find({"PERIODO": st.session_state.periodo}, {"_id": 0})))
 
-                # Verificar que las columnas existan
-                required_columns = ["NOMBRE (S)", "NUM.CONTROL"]
-                for col in required_columns:
-                    if col not in df_periodo.columns:
-                        st.error(f"La columna '{col}' no existe en el DataFrame.")
-                        st.stop()
+                    # Verificar que las columnas existan
+                    required_columns = ["NOMBRE (S)", "NUM.CONTROL"]
+                    for col in required_columns:
+                        if col not in df_periodo.columns:
+                            st.error(f"La columna '{col}' no existe en el DataFrame.")
+                            st.stop()
 
-                # Filtrar registros sin nombre o número de control
-                df_periodo = df_periodo.dropna(subset=required_columns)
+                    # Filtrar registros sin nombre o número de control
+                    df_periodo = df_periodo.dropna(subset=required_columns)
 
-                if not df_periodo.empty:
-                    df_periodo["NOMBRE_COMPLETO"] = (
-                        df_periodo.get("NOMBRE (S)", pd.Series([""]*len(df_periodo))).fillna("") + " " +
-                        df_periodo.get("A. PAT", pd.Series([""]*len(df_periodo))).fillna("") + " " +
-                        df_periodo.get("A. MAT", pd.Series([""]*len(df_periodo))).fillna("")
-                    )
+                    if not df_periodo.empty:
+                        df_periodo["NOMBRE_COMPLETO"] = (
+                            df_periodo.get("NOMBRE (S)", pd.Series([""]*len(df_periodo))).fillna("") + " " +
+                            df_periodo.get("A. PAT", pd.Series([""]*len(df_periodo))).fillna("") + " " +
+                            df_periodo.get("A. MAT", pd.Series([""]*len(df_periodo))).fillna("")
+                        )
 
-                    # Mostrar la tabla con nombre completo y número de control
-                    st.dataframe(df_periodo[["NOMBRE_COMPLETO", "NUM.CONTROL"]])
+                        # Mostrar la tabla con nombre completo y número de control
+                        st.dataframe(df_periodo[["NOMBRE_COMPLETO", "NUM.CONTROL"]])
 
-                    # Seleccionar un estudiante
-                    estudiante = st.selectbox("Selecciona un estudiante:", df_periodo["NOMBRE_COMPLETO"].tolist())
+                        # Seleccionar un estudiante
+                        estudiante = st.selectbox("Selecciona un estudiante:", df_periodo["NOMBRE_COMPLETO"].tolist())
 
-                    # Botón para mostrar datos completos del estudiante
-                    if st.button("Mostrar Datos Completos"):
-                        fila = df_periodo[df_periodo["NOMBRE_COMPLETO"] == estudiante].iloc[0]
-                        st.json(fila.to_dict())
+                        # Botón para mostrar datos completos del estudiante
+                        if st.button("Mostrar Datos Completos"):
+                            fila = df_periodo[df_periodo["NOMBRE_COMPLETO"] == estudiante].iloc[0]
+                            st.json(fila.to_dict())
+
     # ======================= 3. VER / EDITAR ESTUDIANTES =======================
     elif menu == "📖 Ver / Editar estudiantes":
         st.subheader("📖 Consultar y editar estudiantes por carrera y periodo")
