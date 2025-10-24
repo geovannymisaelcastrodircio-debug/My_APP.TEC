@@ -131,12 +131,17 @@ else:
                     "A. INTERNO": fila.get("A. INTERNO", ""),
                     "A. EXTERNO": fila.get("A. EXTERNO", "")
                 }
-                st.session_state.guardados = st.session_state.guardados.append(datos_guardados, ignore_index=True)
+                st.session_state.guardados.loc[len(st.session_state.guardados)] = datos_guardados
                 st.success("✅ Datos guardados correctamente.")
 
             # Mostrar la tabla de estudiantes guardados
             st.subheader("Estudiantes Guardados")
             st.dataframe(st.session_state.guardados)
+
+            # Botón para imprimir la tabla de estudiantes guardados
+            if st.button("Imprimir Estudiantes Guardados"):
+                st.write(st.session_state.guardados.to_csv(index=False))
+                st.success("✅ Datos impresos correctamente.")
 
     # ======================= 2. VER ALUMNOS POR CARRERA =======================
     elif menu == "📖 Ver Alumnos por Carrera":
