@@ -127,11 +127,11 @@ else:
                     "NOMBRE_COMPLETO": fila.get("NOMBRE (S)", "") + " " + fila.get("A. PAT", "") + " " + fila.get("A. MAT", ""),
                     "NUM.CONTROL": fila.get("NUM.CONTROL", ""),
                     "PERIODO": fila.get("PERIODO", ""),
-                    "CARRERA": st.session_state.carrera,
+                    "CARRERA": st.session_state.carrera,  # Asegurar que se asigna la carrera correcta
                     "A. INTERNO": fila.get("A. INTERNO", ""),
                     "A. EXTERNO": fila.get("A. EXTERNO", "")
                 }
-                st.session_state.guardados.loc[len(st.session_state.guardados)] = datos_guardados
+                st.session_state.guardados = st.session_state.guardados.append(datos_guardados, ignore_index=True)
                 st.success("✅ Datos guardados correctamente.")
 
             # Mostrar la tabla de estudiantes guardados
