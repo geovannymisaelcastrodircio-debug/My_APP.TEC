@@ -22,6 +22,10 @@ if "carrera" not in st.session_state:
     st.session_state.carrera = ""
 if "periodo" not in st.session_state:
     st.session_state.periodo = ""
+if "guardados" not in st.session_state:
+    st.session_state.guardados = pd.DataFrame(columns=[
+        "NOMBRE_COMPLETO", "NUM.CONTROL", "PERIODO", "CARRERA", "A. INTERNO", "A. EXTERNO"
+    ])
 
 # ======================= LOGIN =======================
 if not st.session_state.logged_in:
@@ -58,6 +62,9 @@ else:
         st.session_state.usuario = ""
         st.session_state.carrera = ""
         st.session_state.periodo = ""
+        st.session_state.guardados = pd.DataFrame(columns=[
+            "NOMBRE_COMPLETO", "NUM.CONTROL", "PERIODO", "CARRERA", "A. INTERNO", "A. EXTERNO"
+        ])
         st.rerun()
 
     st.sidebar.markdown("### Menú de Navegación")
@@ -102,8 +109,34 @@ else:
         else:
             df_filtered = df_all_data
 
-        # Mostrar la tabla
+        # Mostrar la primera tabla con los resultados filtrados
         st.dataframe(df_filtered[columns_to_check])
+
+        # Seleccionar un estudiante de la primera tabla
+        if not df_filtered.empty:
+            estudiante = st.selectbox("Selecciona un estudiante:", df_filtered["NOMBRE (S)"].tolist())
+            fila = df_filtered[df_filtered["NOMBRE (S)"] == estudiante].iloc[0]
+
+            # Mostrar la segunda tabla con todos los datos del estudiante seleccionado
+            st.subheader("Datos del Estudiante Seleccionado")
+            st.dataframe(fila.to_frame().T)
+
+            # Botón para guardar los datos del estudiante
+            if st.button("Guardar"):
+                datos_guardados = {
+                    "NOMBRE_COMPLETO": fila.get("NOMBRE (S)", "") + " " + fila.get("A. PAT", "") + " " + fila.get("A. MAT", ""),
+                    "NUM.CONTROL": fila.get("NUM.CONTROL", ""),
+                    "PERIODO": fila.get("PERIODO", ""),
+                    "CARRERA": st.session_state.carrera,
+                    "A. INTERNO": fila.get("A. INTERNO", ""),
+                    "A. EXTERNO": fila.get("A. EXTERNO", "")
+                }
+                st.session_state.guardados = st.session_state.guardados.append(datos_guardados, ignore_index=True)
+                st.success("✅ Datos guardados correctamente.")
+
+            # Mostrar la tabla de estudiantes guardados
+            st.subheader("Estudiantes Guardados")
+            st.dataframe(st.session_state.guardados)
 
     # ======================= 2. VER ALUMNOS POR CARRERA =======================
     elif menu == "📖 Ver Alumnos por Carrera":
