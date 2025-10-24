@@ -24,7 +24,7 @@ if "periodo" not in st.session_state:
     st.session_state.periodo = ""
 if "guardados" not in st.session_state:
     st.session_state.guardados = pd.DataFrame(columns=[
-        "NOMBRE_COMPLETO", "NUM.CONTROL", "PERIODO", "CARRERA", "A. INTERNO", "A. EXTERNO"
+        "NOMBRE_COMPLETO", "NUM.CONTROL", "PERIODO", "C", "A. INTERNO", "A. EXTERNO"
     ])
 
 # ======================= LOGIN =======================
@@ -63,7 +63,7 @@ else:
         st.session_state.carrera = ""
         st.session_state.periodo = ""
         st.session_state.guardados = pd.DataFrame(columns=[
-            "NOMBRE_COMPLETO", "NUM.CONTROL", "PERIODO", "CARRERA", "A. INTERNO", "A. EXTERNO"
+            "NOMBRE_COMPLETO", "NUM.CONTROL", "PERIODO", "C", "A. INTERNO", "A. EXTERNO"
         ])
         st.rerun()
 
@@ -127,7 +127,7 @@ else:
                     "NOMBRE_COMPLETO": fila.get("NOMBRE (S)", "") + " " + fila.get("A. PAT", "") + " " + fila.get("A. MAT", ""),
                     "NUM.CONTROL": fila.get("NUM.CONTROL", ""),
                     "PERIODO": fila.get("PERIODO", ""),
-                    "CARRERA": st.session_state.carrera,  # Asegurar que se asigna la carrera correcta
+                    "C": st.session_state.carrera,  # Asegurar que se asigna la carrera correcta
                     "A. INTERNO": fila.get("A. INTERNO", ""),
                     "A. EXTERNO": fila.get("A. EXTERNO", "")
                 }
