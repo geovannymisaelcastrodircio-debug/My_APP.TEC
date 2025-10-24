@@ -131,7 +131,7 @@ else:
                     "A. INTERNO": fila.get("A. INTERNO", ""),
                     "A. EXTERNO": fila.get("A. EXTERNO", "")
                 }
-                st.session_state.guardados = st.session_state.guardados.append(datos_guardados, ignore_index=True)
+                st.session_state.guardados = pd.concat([st.session_state.guardados, pd.DataFrame([datos_guardados])], ignore_index=True)
                 st.success("✅ Datos guardados correctamente.")
 
             # Mostrar la tabla de estudiantes guardados
