@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 from pymongo import MongoClient
 from datetime import date
+from io import BytesIO
 
 # ======================= CONFIGURACIÓN =======================
 st.set_page_config(page_title="Sistema de Estudiantes", page_icon="🎓", layout="wide")
@@ -168,10 +169,19 @@ else:
             st.subheader("Estudiantes Guardados")
             st.dataframe(st.session_state.guardados)
 
-            # Botón para imprimir la tabla de estudiantes guardados
-            if st.button("Imprimir Estudiantes Guardados"):
-                st.write(st.session_state.guardados.to_csv(index=False))
-                st.success("✅ Datos impresos correctamente.")
+            # Botón para exportar a Excel
+            if st.button("Exportar a Excel"):
+                output = BytesIO()
+                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                    st.session_state.guardados.to_excel(writer, index=False, sheet_name='Estudiantes Guardados')
+                output.seek(0)
+                st.download_button(
+                    label="Descargar Excel",
+                    data=output,
+                    file_name="estudiantes_guardados.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+                st.success("✅ Archivo Excel generado correctamente.")
 
     # ======================= 2. VER ALUMNOS POR CARRERA =======================
     elif menu == "📖 Ver Alumnos por Carrera":
