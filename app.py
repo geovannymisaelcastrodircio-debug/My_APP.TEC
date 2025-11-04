@@ -6,6 +6,34 @@ from datetime import date
 
 # ======================= CONFIGURACIÓN =======================
 st.set_page_config(page_title="Sistema de Estudiantes", page_icon="🎓", layout="wide")
+st.markdown(
+    """
+    <style>
+    .main {
+        background-color: #1E1E1E;
+        color: white;
+    }
+    .stButton>button {
+        background-color: #4A90E2;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        font-size: 16px;
+    }
+    .stButton>button:hover {
+        background-color: #0066cc;
+    }
+    .stTextInput>div>div>input {
+        color: black;
+    }
+    .stSelectbox>div>div>select {
+        color: black;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # ======================= USUARIOS =======================
 USERS = {
@@ -99,7 +127,7 @@ else:
                 st.stop()
 
         # Buscador por nombre o número de control
-        search_term = st.text_input("Buscar por Nombre o Número de Control")
+        search_term = st.text_input("Buscar por Nombre o Número de Control", key="search_term")
 
         if search_term:
             df_filtered = df_all_data[
